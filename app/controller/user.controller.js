@@ -342,6 +342,45 @@ class UserController {
         }
     
     }
+
+    async generateAccessToken(req, res) {
+        try {
+            const { refreshToken } = req.body;
+            if (!refreshToken) {
+                return res.status(400).json({ status: false, message: 'Refresh token is required' });
+            }
+            // Verify the refresh token
+            jwt.verify(refreshToken, process.env.JWT_SECRET || 'jwt_secret_key', async (err, decoded) => {
+                if (err) {
+                    return res.status(401).json({ status: false, message: 'Invalid refresh token error' });
+                }
+                const user = await User.findById(decoded.id);
+                const isRefreshTokenValid = await bcryptjs.compare(refreshToken, user.refreshToken);
+                if (!user || !isRefreshTokenValid) {
+                    return res.status(401).json({ status: false, message: 'Invalid refresh token user' });
+                }
+                // Generate a new access token
+                const newAccessToken = jwt.sign({
+                    id: user._id,
+                    name: user.name,
+                    email: user.email,
+                    phone: user.phone,
+                    department: user.department,
+                    role: user.role
+                }, process.env.JWT_SECRET || 'jwt_secret_key', { expiresIn: '1m' });
+                res.status(200).json({
+                    status: true,
+                    message: 'Access token refreshed successfully',
+                    accessToken: newAccessToken
+                });
+            });
+        } catch (err) {
+            console.log(err);
+            res.status(500).json({ status: false, message: 'Server error in refresh token' });
+        }
+    }
+        
+
     
 }
 

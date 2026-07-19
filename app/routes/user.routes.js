@@ -16,6 +16,7 @@ router.post('/reset-password-link', UserController.resetPasswordLink);
 router.post('/reset-password/:id/:token', AuthCheck, UserController.resetPassword);
 router.get('/get-all-users', AuthCheck, AdminCheck, UserController.getAllUsers);
 router.get('/get-user-by-id/:id', AuthCheck, UserController.getUserById);
+router.post('/generate-access-token', UserController.generateAccessToken);
 
 
 module.exports = router;
